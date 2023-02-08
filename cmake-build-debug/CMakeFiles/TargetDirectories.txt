@@ -1,0 +1,3 @@
+/Users/rickyolive/Desktop/GroupRotationApp/cmake-build-debug/CMakeFiles/GroupRotationApp.dir
+/Users/rickyolive/Desktop/GroupRotationApp/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/rickyolive/Desktop/GroupRotationApp/cmake-build-debug/CMakeFiles/rebuild_cache.dir
