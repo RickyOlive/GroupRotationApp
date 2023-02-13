@@ -1,8 +1,3 @@
-// wxWidgets "Hello World" Program
-
-// For compilers that support precompilation, includes "wx/wx.h".
-//#include <wx/wxprec.h>
-
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
@@ -19,14 +14,26 @@ public:
     MyFrame();
 
 private:
-    void OnHello(wxCommandEvent& event);
+
+    // Functions that are being called
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
+    void OnAddGroup(wxCommandEvent &event);
+    void OnAddRotationItem(wxCommandEvent &event);
+    void OnSaveAs(wxCommandEvent &event);
+
+
+    // List Boxes that hold group names as well as rotation items
+    wxListBox *m_groupListBox;
+    wxListBox *m_rotationItemListBox;
+
 };
 
 enum
 {
-    ID_Hello = 1
+    ID_ADDGROUP = 1,
+    ID_ADDROTATIONITEM = 2,
+    ID_SAVEAS = 3
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -39,29 +46,49 @@ bool MyApp::OnInit()
 }
 
 MyFrame::MyFrame()
-        : wxFrame(nullptr, wxID_ANY, "Hello World")
+        : wxFrame(nullptr, wxID_ANY, "Group-Rotation Scheduler")
 {
+    m_groupListBox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(100, 100));
+    m_rotationItemListBox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(100, 100));
+
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(m_groupListBox, 1, wxEXPAND | wxALL, 5);
+    sizer->Add(m_rotationItemListBox, 1, wxEXPAND | wxALL, 5);
+
+    SetSizer(sizer);
+
+    // elements within File Tab
     wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
+
+    menuFile->Append(ID_SAVEAS, "&Save As...\tCtrl-A",
+                     "Save schedule file");
+
+    // elements within Entry Tab
+    wxMenu *menuEntry = new wxMenu;
+    menuEntry->Append(ID_ADDGROUP, "&Add Group...\tCtrl-A",
+                     "Add a new group");
+    menuEntry->Append(ID_ADDROTATIONITEM, "&Add Rotation Item...\tCtrl-A",
+                     "Add a new item to be rotated");
+
 
     wxMenu *menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT);
 
     wxMenuBar *menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuEntry, "&Entry");
     menuBar->Append(menuHelp, "&Help");
 
     SetMenuBar( menuBar );
 
-    CreateStatusBar();
-    SetStatusText("Welcome to wxWidgets!");
 
-    Bind(wxEVT_MENU, &MyFrame::OnHello, this, ID_Hello);
     Bind(wxEVT_MENU, &MyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MyFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_MENU, &MyFrame::OnAddGroup, this, ID_ADDGROUP);
+    Bind(wxEVT_MENU, &MyFrame::OnAddRotationItem, this, ID_ADDROTATIONITEM);
+    Bind(wxEVT_MENU, &MyFrame::OnSaveAs, this, ID_SAVEAS);
 }
 
 void MyFrame::OnExit(wxCommandEvent& event)
@@ -69,13 +96,59 @@ void MyFrame::OnExit(wxCommandEvent& event)
     Close(true);
 }
 
+/**
+ * Prints out purpose of the program
+ * @param click event
+ */
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
-    wxMessageBox("This is a wxWidgets Hello World example",
-                 "About Hello World", wxOK | wxICON_INFORMATION);
+    wxMessageBox("This is a desktop application where you can enter groups "
+                 "and something to rotate between them such as a location, "
+                 "and it creates a rotation schedule.",
+                 "About Group-Rotation Scheduler", wxOK | wxICON_INFORMATION);
 }
 
-void MyFrame::OnHello(wxCommandEvent& event)
+/**
+ * User entry box allows user to input the names of the groups
+ * @param event
+ */
+void MyFrame::OnAddGroup(wxCommandEvent& event)
 {
-    wxLogMessage("Hello world from wxWidgets!");
+    wxTextEntryDialog dialog(this, "Enter a new group name:", "Add Group");
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxString groupName = dialog.GetValue();
+        m_groupListBox->Append(groupName);
+
+    }
 }
+
+/**
+ * User entry box that allows user to enter the names of the items they are
+ * rotating between the groups
+ * @param click event
+ */
+void MyFrame::OnAddRotationItem(wxCommandEvent& event)
+{
+    wxTextEntryDialog dialog(this, "Enter an item you would like to be rotated "
+                                   "(ex. name of a location, responsibilities, etc):", "Add Group");
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxString rotatedItem = dialog.GetValue();
+        m_rotationItemListBox->Append(rotatedItem);
+
+    }
+}
+
+/**
+ * This will eventually allow the user to save the generated schedule
+ * @param click event
+ */
+void MyFrame::OnSaveAs (wxCommandEvent& event) {
+    wxMessageBox("In development, this will allow you to save your generated schedule as a file",
+                 "Save As...", wxOK | wxICON_INFORMATION);
+
+}
+
