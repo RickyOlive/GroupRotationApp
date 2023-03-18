@@ -23,12 +23,12 @@ find_package(wxWidgets COMPONENTS core base REQUIRED)
 # wxWidgets include (this will do all the magic to configure everything)
 include("${wxWidgets_USE_FILE}")
 
-set(SRCS GroupRotationApp.cpp)
+set(SRCS GroupRotationApp.cpp GroupRotationClasses.cpp GroupRotationClasses.h)
 
 # If we build for windows systems, we also include the resource file
 # containing the manifest, icon and other resources
 if (WIN32)
-    set(SRCS ${SRCS} GroupRotationApp.rc GroupRotationApp.cpp)
+    set(SRCS ${SRCS} GroupRotationApp.rc GroupRotationApp.cpp GroupRotationClasses.cpp GroupRotationClasses.h)
 endif(WIN32)
 
 add_executable(${PROJECT_NAME} WIN32 ${SRCS})
