@@ -1,19 +1,25 @@
-//
-// Created by Ricky Olive on 3/18/23.
-//
+// COP 3003 - CRN 15050 - Programming II
+// cpp file containing class function and member definitions
+// --------------------------------------------------------------------------------------------------------------------
 
 #include "GroupRotationClasses.h"
 
+// MyApp function definition
 bool MyApp::OnInit()
 {
     MyFrame *frame = new MyFrame();
     frame->Show(true);
     return true;
 }
+// --------------------------------------------------------------------------------------------------------------------
 
-MyFrame::MyFrame()
-        : wxFrame(nullptr, wxID_ANY, "Group-Rotation Scheduler")
-{
+// MyFrame function and member definitions
+
+/**
+ * Constructor for the MyFrame class this pretty much initializes all
+ * of the UI components as well as some of the members of the class
+ */
+MyFrame::MyFrame():wxFrame(nullptr, wxID_ANY, "Group-Rotation Scheduler") {
 
     // Declares the three boxes (both list boxes and the text box)
     m_groupListBox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -31,7 +37,6 @@ MyFrame::MyFrame()
     sizer->Add(printOut, 2, wxEXPAND | wxALL, 5);
 
     SetSizer(sizer);
-
 
     // elements within File Tab
     wxMenu *menuFile = new wxMenu;
@@ -57,7 +62,6 @@ MyFrame::MyFrame()
     menuOutput->Append(ID_PRINT, "&Print...\tCtrl-P",
                        "Prints rotated schedule on the rightmost box");
 
-
     // elements within Menu tab
     wxMenu *menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT);
@@ -70,7 +74,6 @@ MyFrame::MyFrame()
 
     SetMenuBar( menuBar );
 
-
     Bind(wxEVT_MENU, &MyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MyFrame::OnExit, this, ID_EXIT);
     Bind(wxEVT_MENU, &MyFrame::OnAddGroup, this, ID_ADDGROUP);
@@ -82,22 +85,17 @@ MyFrame::MyFrame()
     Bind(wxEVT_MENU, &MyFrame::OnTimeSpan, this, ID_TIMESPAN);
 
     // assigns necessary default values to class members
-    timeIntervalSelection = "Daily";
+    timeIntervalSelection = "Day";
     timeSpanValue = 1;
     timeSpanDefaultValue = 1;
     timeSpanMinValue = 1;
     timeSpanMaxValue = INT_MAX;
-    groupIndexControl = 0;
     concatenatedArrayString = "";
-}
 
-/**
- * Closes the application
- * @param event
- */
-void MyFrame::OnExit(wxCommandEvent& event)
-{
-    Close(true);
+    // sets the available choices for time interval
+    timeIntervalChoices.Add("Day");
+    timeIntervalChoices.Add("Week");
+    timeIntervalChoices.Add("Month");
 }
 
 /**
@@ -112,7 +110,6 @@ void MyFrame::OnAbout(wxCommandEvent& event)
                  "About Group-Rotation Scheduler", wxOK | wxICON_INFORMATION);
 }
 
-
 /**
 * This will eventually allow the user to save the generated schedule
 * @param click event
@@ -120,7 +117,14 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 void MyFrame::OnSaveAs (wxCommandEvent& event) {
     wxMessageBox("In development, this will allow you to save your generated schedule as a file",
                  "Save As...", wxOK | wxICON_INFORMATION);
+}
 
+/**
+ * Closes the application
+ * @param event
+ */
+void MyFrame::OnExit(wxCommandEvent& event) {
+    Close(true);
 }
 
 /**
@@ -129,13 +133,11 @@ void MyFrame::OnSaveAs (wxCommandEvent& event) {
  */
 void MyFrame::OnAddGroup(wxCommandEvent& event)
 {
-    wxTextEntryDialog dialog(this, "Enter a new group name:", "Add Group");
+    wxTextEntryDialog addGroupDialog(this, "Enter a new group name:", "Add Group");
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxString groupName = dialog.GetValue();
+    if (addGroupDialog.ShowModal() == wxID_OK) {
+        wxString groupName = addGroupDialog.GetValue();
         m_groupListBox->Append(groupName);
-
     }
 }
 
@@ -146,14 +148,12 @@ void MyFrame::OnAddGroup(wxCommandEvent& event)
  */
 void MyFrame::OnAddRotationItem(wxCommandEvent& event)
 {
-    wxTextEntryDialog dialog(this, "Enter an item you would like to be rotated "
-                                   "(ex. name of a location, responsibilities, etc):", "Add Group");
+    wxTextEntryDialog addRotationItemDialog(this, "Enter an item you would like to be rotated "
+                                                  "(ex. name of a location, responsibilities, etc):", "Add Group");
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxString rotatedItem = dialog.GetValue();
+    if (addRotationItemDialog.ShowModal() == wxID_OK) {
+        wxString rotatedItem = addRotationItemDialog.GetValue();
         m_rotationItemListBox->Append(rotatedItem);
-
     }
 }
 
@@ -184,14 +184,10 @@ void MyFrame::OnDeleteEntry(wxCommandEvent& event)
  */
 void MyFrame::OnSelectTimeInterval(wxCommandEvent& event) {
 
-    timeIntervalChoices.Add("Daily");
-    timeIntervalChoices.Add("Weekly");
-    timeIntervalChoices.Add("Monthly");
+    wxSingleChoiceDialog selectTimeIntervalDialog(this, "Select an option", "Selector", timeIntervalChoices, nullptr);
 
-    wxSingleChoiceDialog dialog(this, "Select an option", "Selector", timeIntervalChoices, nullptr);
-
-    if (dialog.ShowModal() == wxID_OK) {
-        timeIntervalSelection = dialog.GetStringSelection();
+    if (selectTimeIntervalDialog.ShowModal() == wxID_OK) {
+        timeIntervalSelection = selectTimeIntervalDialog.GetStringSelection();
         wxLogMessage("Selected: %s", timeIntervalSelection);
     }
 }
@@ -202,13 +198,13 @@ void MyFrame::OnSelectTimeInterval(wxCommandEvent& event) {
  */
 void MyFrame::OnTimeSpan(wxCommandEvent& event) {
 
-    timeSpanValue = wxGetNumberFromUser("Enter a number:", "Time Span", "Input", timeSpanDefaultValue, timeSpanMinValue, timeSpanMaxValue, this);
+    timeSpanValue = wxGetNumberFromUser("Enter a number:", "Time Span", "Input",
+                                        timeSpanDefaultValue, timeSpanMinValue, timeSpanMaxValue, this);
 
     if (timeSpanValue == -1) {
         timeSpanValue = timeSpanDefaultValue;
     }
     wxLogMessage("Time Span has been set to %d", timeSpanValue);
-
 }
 
 /**
@@ -217,29 +213,45 @@ void MyFrame::OnTimeSpan(wxCommandEvent& event) {
  */
 void MyFrame::OnPrint (wxCommandEvent& event) {
 
+    // if there are no items in one or both of the lists then there can be no
+    // output so this tells the user to check their inputs
     if (m_rotationItemListBox->GetCount() == 0 || m_groupListBox->GetCount() == 0) {
         wxLogMessage("Please make sure that you have inputted at least one entry for each box.");
         return;
     }
 
+    // clears any previous outputs to the user may have printed
     printOut->Clear();
-    outputArray = std::vector<std::vector<std::string> >(m_rotationItemListBox->GetCount(), std::vector<std::string>(2, ""));
 
+    // initializes vector
+    outputArray = std::vector<std::vector<std::string> >
+            (m_rotationItemListBox->GetCount(), std::vector<std::string>(2, ""));
+
+    // sets the starting index to 0 because we want the first line to print out the names in its original order
+    startIndexControl = 0;
+
+    // Prints out a line of text with each iteration so this is set to the timeSpanValue because the user
+    // picks out far they want the schedule to be
     for (int x = 0; x < timeSpanValue; x++) {
+        countIndexControl = startIndexControl;
+
         for (int y = 0; y < m_rotationItemListBox->GetCount(); y++) {
             outputArray[y][0] = m_rotationItemListBox->GetString(y);
-            outputArray[y][1] = m_groupListBox->GetString(groupIndexControl);
-            groupIndexControl += 1;
-            if (groupIndexControl == m_groupListBox->GetCount()) {
-                groupIndexControl = 0;
+            outputArray[y][1] = m_groupListBox->GetString(countIndexControl);
+            countIndexControl += 1;
+            if (countIndexControl == m_groupListBox->GetCount()) {
+                countIndexControl = 0;
             }
             concatenatedArrayString += "['" + outputArray[y][0] + "', '" + outputArray[y][1] + "'] ";
+        }
+        startIndexControl -= 1;
+        if (startIndexControl == -1) {
+            startIndexControl = m_groupListBox->GetCount() - 1;
         }
 
         outputString = timeIntervalSelection + " " + std::to_string(x + 1) + ": " + concatenatedArrayString + "\n";
         concatenatedArrayString = "";
         printOut->AppendText(outputString);
-
-
     }
 }
+// --------------------------------------------------------------------------------------------------------------------
