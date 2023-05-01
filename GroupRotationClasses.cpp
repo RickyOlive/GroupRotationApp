@@ -4,6 +4,8 @@
 
 #include "GroupRotationClasses.h"
 
+
+// --------------------------------------------------------------------------------------------------------------------
 // MyApp function definition
 bool MyApp::OnInit()
 {
@@ -21,22 +23,26 @@ bool MyApp::OnInit()
  */
 MyFrame::MyFrame():wxFrame(nullptr, wxID_ANY, "Group-Rotation Scheduler") {
 
-    // Declares the three boxes (both list boxes and the text box)
+
+
     m_groupListBox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_rotationItemListBox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    printOut = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+    m_grid = new wxGrid(this, wxID_ANY);
+
+    m_grid->CreateGrid(0, 0);
 
     // sizers to format the boxes
-    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *listBoxSizer = new wxBoxSizer(wxVERTICAL);
+    sizer = new wxBoxSizer(wxHORIZONTAL);
+    listBoxSizer = new wxBoxSizer(wxVERTICAL);
 
     // Adds boxes to the defined boxes
     listBoxSizer->Add(m_groupListBox, 1, wxEXPAND | wxALL, 5);
     listBoxSizer->Add(m_rotationItemListBox, 1, wxEXPAND | wxALL, 5);
     sizer->Add(listBoxSizer, 1, wxEXPAND | wxALL, 5);
-    sizer->Add(printOut, 2, wxEXPAND | wxALL, 5);
+    sizer->Add(m_grid, 2, wxEXPAND | wxALL, 5);
 
     SetSizer(sizer);
+
 
     // elements within File Tab
     wxMenu *menuFile = new wxMenu;
@@ -96,6 +102,7 @@ MyFrame::MyFrame():wxFrame(nullptr, wxID_ANY, "Group-Rotation Scheduler") {
     timeIntervalChoices.Add("Day");
     timeIntervalChoices.Add("Week");
     timeIntervalChoices.Add("Month");
+
 }
 
 /**
@@ -111,12 +118,26 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 }
 
 /**
-* This will eventually allow the user to save the generated schedule
+* Allows user to name file and enter the path where they want their file saved
+* and writes to the file
 * @param click event
 */
 void MyFrame::OnSaveAs (wxCommandEvent& event) {
-    wxMessageBox("In development, this will allow you to save your generated schedule as a file",
-                 "Save As...", wxOK | wxICON_INFORMATION);
+    wxTextEntryDialog nameFileDialog(this, "Enter the name of the file (Ex. 'GroupSchedule')", "Name File");
+
+    if (nameFileDialog.ShowModal() == wxID_OK) {
+        File.filename = nameFileDialog.GetValue() + ".txt";
+    }
+
+    wxTextEntryDialog filePathDialog(this, "Enter the path where you would like to save the file "
+                                           "(Ex. '/Users/rickyolive/Desktop' )", "File Path");
+
+    if (filePathDialog.ShowModal() == wxID_OK) {
+        File.filePath = filePathDialog.GetValue();
+    }
+
+    WriteFile();
+
 }
 
 /**
@@ -173,8 +194,7 @@ void MyFrame::OnDeleteEntry(wxCommandEvent& event)
         m_rotationItemListBox->Delete(selectedRotationItemIndex);
     }
     else {
-        wxMessageBox("Please make sure that you have selected an item to be deleted.",
-                     "No Item Selected", wxOK | wxICON_INFORMATION);
+        wxMessageBox("Please make sure that you have selected an item to be deleted.","No Item Selected", wxOK | wxICON_INFORMATION);
     }
 }
 
@@ -198,8 +218,7 @@ void MyFrame::OnSelectTimeInterval(wxCommandEvent& event) {
  */
 void MyFrame::OnTimeSpan(wxCommandEvent& event) {
 
-    timeSpanValue = wxGetNumberFromUser("Enter a number:", "Time Span", "Input",
-                                        timeSpanDefaultValue, timeSpanMinValue, timeSpanMaxValue, this);
+    timeSpanValue = wxGetNumberFromUser("Enter a number:", "Time Span", "Input",timeSpanDefaultValue, timeSpanMinValue, timeSpanMaxValue, this);
 
     if (timeSpanValue == -1) {
         timeSpanValue = timeSpanDefaultValue;
@@ -208,10 +227,57 @@ void MyFrame::OnTimeSpan(wxCommandEvent& event) {
 }
 
 /**
- * prints out rotation schedule
+ * prints out rotation schedule in a grid
  * @param event
  */
 void MyFrame::OnPrint (wxCommandEvent& event) {
+
+    // removes from the sizer
+    sizer->Detach(m_grid);
+
+    // deletes grid so new one with new dimensions can be created
+    delete m_grid;
+
+    // adds new grid
+    m_grid = new wxGrid(this, wxID_ANY);
+
+    // sets the dimensions of the new grid
+    m_grid->CreateGrid(timeSpanValue, m_rotationItemListBox->GetCount());
+
+    // formats the newly created grid
+    sizer->Add(m_grid, 2, wxEXPAND | wxALL, 5);
+    sizer->Layout();
+
+    for (int i = 0; i < m_rotationItemListBox->GetCount(); i++) {
+        m_grid->SetColLabelValue(i, m_rotationItemListBox->GetString(i));
+    }
+
+    for (int i = 0; i < timeSpanValue; i++) {
+        m_grid->SetRowLabelValue(i, timeIntervalSelection + " " + std::to_string(i + 1));
+    }
+
+    countIndexControl = 0;
+
+    for (int x = 0; x < timeSpanValue; x++) {
+        for (int y = 0; y < m_rotationItemListBox->GetCount(); y++) {
+
+            m_grid->SetCellValue(x, y, m_groupListBox->GetString(countIndexControl));
+            countIndexControl += 1;
+            if (countIndexControl == m_groupListBox->GetCount()) {
+                countIndexControl = 0;
+            }
+        }
+    }
+
+
+}
+
+/**
+ * Function call to write to file the generated schedule
+ */
+void MyFrame::WriteFile() {
+
+    File.myFile.open(File.filePath + "/" + File.filename);
 
     // if there are no items in one or both of the lists then there can be no
     // output so this tells the user to check their inputs
@@ -220,12 +286,8 @@ void MyFrame::OnPrint (wxCommandEvent& event) {
         return;
     }
 
-    // clears any previous outputs to the user may have printed
-    printOut->Clear();
-
     // initializes vector
-    outputArray = std::vector<std::vector<std::string> >
-            (m_rotationItemListBox->GetCount(), std::vector<std::string>(2, ""));
+    outputArray = std::vector<std::vector<std::string> > (m_rotationItemListBox->GetCount(), std::vector<std::string>(2, ""));
 
     // sets the starting index to 0 because we want the first line to print out the names in its original order
     startIndexControl = 0;
@@ -251,7 +313,11 @@ void MyFrame::OnPrint (wxCommandEvent& event) {
 
         outputString = timeIntervalSelection + " " + std::to_string(x + 1) + ": " + concatenatedArrayString + "\n";
         concatenatedArrayString = "";
-        printOut->AppendText(outputString);
+        File.myFile << outputString << '\n';
     }
+
+    File.myFile.close();
 }
+
+
 // --------------------------------------------------------------------------------------------------------------------

@@ -8,11 +8,21 @@
 
 // Directives
 #include <wx/wx.h>
+#include <wx/grid.h>
 #include <wx/numdlg.h>
 #include <vector>
 #include <string>
+#include <fstream>
 // --------------------------------------------------------------------------------------------------------------------
 
+
+// File struct
+struct File {
+    std::string filename;
+    std::string filePath;
+    std::ofstream myFile;
+};
+// --------------------------------------------------------------------------------------------------------------------
 
 // MyApp Class
 class MyApp : public wxApp
@@ -52,19 +62,28 @@ private:
     void OnSelectTimeInterval(wxCommandEvent &event);
     void OnTimeSpan(wxCommandEvent &event);
     void OnPrint(wxCommandEvent &event);
+    void WriteFile();
+
 
     // wxWidgets declaration;
+    wxGrid *m_grid;
     wxListBox *m_groupListBox;
     wxListBox *m_rotationItemListBox;
-    wxTextCtrl *printOut;
     wxArrayString timeIntervalChoices;
     wxString timeIntervalSelection;
+    wxBoxSizer *sizer;
+    wxBoxSizer *listBoxSizer;
+    File File;
 
     // 2D vector being used to print out the output
     std::vector<std::vector<std::string> > outputArray;
 
 };
+
 // --------------------------------------------------------------------------------------------------------------------
+
+
+
 
 // Enum with ID's
 enum
