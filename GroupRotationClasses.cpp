@@ -256,9 +256,14 @@ void MyFrame::OnPrint (wxCommandEvent& event) {
         m_grid->SetRowLabelValue(i, timeIntervalSelection + " " + std::to_string(i + 1));
     }
 
-    countIndexControl = 0;
+    // sets the starting index to 0 because we want the first line to print out the names in its original order
+    startIndexControl = 0;
+
+
 
     for (int x = 0; x < timeSpanValue; x++) {
+        countIndexControl = startIndexControl;
+
         for (int y = 0; y < m_rotationItemListBox->GetCount(); y++) {
 
             m_grid->SetCellValue(x, y, m_groupListBox->GetString(countIndexControl));
@@ -266,6 +271,10 @@ void MyFrame::OnPrint (wxCommandEvent& event) {
             if (countIndexControl == m_groupListBox->GetCount()) {
                 countIndexControl = 0;
             }
+        }
+        startIndexControl -= 1;
+        if (startIndexControl == -1) {
+            startIndexControl = m_groupListBox->GetCount() - 1;
         }
     }
 
