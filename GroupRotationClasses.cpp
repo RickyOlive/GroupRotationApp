@@ -170,7 +170,7 @@ void MyFrame::OnAddGroup(wxCommandEvent& event)
 void MyFrame::OnAddRotationItem(wxCommandEvent& event)
 {
     wxTextEntryDialog addRotationItemDialog(this, "Enter an item you would like to be rotated "
-                                                  "(ex. name of a location, responsibilities, etc):", "Add Group");
+                                                  "(ex. name of a location, responsibilities, etc):", "Add Item");
 
     if (addRotationItemDialog.ShowModal() == wxID_OK) {
         wxString rotatedItem = addRotationItemDialog.GetValue();
