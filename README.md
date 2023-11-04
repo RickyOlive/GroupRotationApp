@@ -1,4 +1,4 @@
-# Programming II Group Rotation App
+# Group Rotation App
 
 Project Functionality -
 
